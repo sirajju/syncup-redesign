@@ -1,5 +1,5 @@
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatArea } from "@/components/ChatArea";
 import { useState } from "react";
@@ -75,6 +75,10 @@ const Index = () => {
             onChatSelect={setSelectedChat} 
           />
           <main className="flex-1 flex flex-col">
+            {/* Add sidebar trigger for mobile */}
+            <div className="md:hidden p-2 border-b border-gray-200/50 bg-white/70 backdrop-blur-sm">
+              <SidebarTrigger />
+            </div>
             <ChatArea 
               selectedChat={selectedChat}
               messages={messages}
