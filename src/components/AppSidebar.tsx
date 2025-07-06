@@ -6,18 +6,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Search, MessageCircle, Settings, Plus, MoreVertical } from "lucide-react";
+import { Search, MessageCircle, Settings, Plus, MoreVertical, User, Phone, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Chat } from "@/pages/Index";
+import { Chat, ActivePanel } from "@/pages/Index";
 import { useState } from "react";
 
 interface AppSidebarProps {
   selectedChat: Chat | null;
   onChatSelect: (chat: Chat) => void;
+  activePanel: ActivePanel;
+  onPanelChange: (panel: ActivePanel) => void;
 }
 
 const mockChats: Chat[] = [
@@ -65,10 +68,37 @@ const mockChats: Chat[] = [
     timestamp: 'Sunday',
     unreadCount: 1,
     isOnline: false
+  },
+  {
+    id: '6',
+    name: 'Marketing Team',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Campaign results are looking great!',
+    timestamp: 'Friday',
+    unreadCount: 3,
+    isOnline: true
+  },
+  {
+    id: '7',
+    name: 'John Smith',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Can we reschedule our call?',
+    timestamp: 'Thursday',
+    unreadCount: 0,
+    isOnline: false
+  },
+  {
+    id: '8',
+    name: 'Anna Wilson',
+    avatar: '/placeholder.svg',
+    lastMessage: 'Perfect! Thanks for the update',
+    timestamp: 'Wednesday',
+    unreadCount: 1,
+    isOnline: true
   }
 ];
 
-export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
+export function AppSidebar({ selectedChat, onChatSelect, activePanel, onPanelChange }: AppSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredChats = mockChats.filter(chat =>
@@ -89,13 +119,22 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
               </div>
               <div>
-                <h1 className="font-bold text-xl text-gray-900 tracking-tight">Messages</h1>
+                <h1 className="font-bold text-xl text-gray-900 tracking-tight">StyleChat</h1>
                 <p className="text-xs text-gray-600 font-medium">{filteredChats.length} active chats</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-emerald-100/80 rounded-lg transition-all duration-200">
-                <Plus className="h-4 w-4 text-gray-600" />
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className={`h-8 w-8 rounded-lg transition-all duration-200 ${
+                  activePanel === 'new-chat' 
+                    ? 'bg-emerald-200/80 text-emerald-700' 
+                    : 'hover:bg-emerald-100/80 text-gray-600'
+                }`}
+                onClick={() => onPanelChange('new-chat')}
+              >
+                <Plus className="h-4 w-4" />
               </Button>
               <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-emerald-100/80 rounded-lg transition-all duration-200">
                 <MoreVertical className="h-4 w-4 text-gray-600" />
@@ -123,7 +162,7 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
               <SidebarMenuButton
                 onClick={() => onChatSelect(chat)}
                 className={`w-full p-0 rounded-xl transition-all duration-300 group relative overflow-hidden border-0 h-auto ${
-                  selectedChat?.id === chat.id 
+                  selectedChat?.id === chat.id && activePanel === 'chat'
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/25 transform scale-[1.01]' 
                     : 'hover:bg-gray-50/80 hover:shadow-md hover:shadow-gray-500/5'
                 }`}
@@ -131,11 +170,11 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                 <div className="flex items-center gap-3 w-full p-4 relative z-10">
                   <div className="relative flex-shrink-0">
                     <Avatar className={`h-12 w-12 shadow-md transition-all duration-300 ${
-                      selectedChat?.id === chat.id ? 'ring-3 ring-white/30' : 'ring-1 ring-gray-200'
+                      selectedChat?.id === chat.id && activePanel === 'chat' ? 'ring-3 ring-white/30' : 'ring-1 ring-gray-200'
                     }`}>
                       <AvatarImage src={chat.avatar} alt={chat.name} />
                       <AvatarFallback className={`font-semibold text-sm ${
-                        selectedChat?.id === chat.id 
+                        selectedChat?.id === chat.id && activePanel === 'chat'
                           ? 'bg-white/20 text-white' 
                           : 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
                       }`}>
@@ -144,7 +183,7 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                     </Avatar>
                     {chat.isOnline && (
                       <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-3 shadow-sm animate-pulse ${
-                        selectedChat?.id === chat.id ? 'bg-green-400 border-white/30' : 'bg-green-500 border-white'
+                        selectedChat?.id === chat.id && activePanel === 'chat' ? 'bg-green-400 border-white/30' : 'bg-green-500 border-white'
                       }`}></div>
                     )}
                   </div>
@@ -152,12 +191,12 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
                       <h3 className={`font-semibold text-sm truncate ${
-                        selectedChat?.id === chat.id ? 'text-white' : 'text-gray-900'
+                        selectedChat?.id === chat.id && activePanel === 'chat' ? 'text-white' : 'text-gray-900'
                       }`}>
                         {chat.name}
                       </h3>
                       <span className={`text-xs font-medium ml-2 flex-shrink-0 ${
-                        selectedChat?.id === chat.id ? 'text-emerald-100' : 'text-gray-500'
+                        selectedChat?.id === chat.id && activePanel === 'chat' ? 'text-emerald-100' : 'text-gray-500'
                       }`}>
                         {chat.timestamp}
                       </span>
@@ -165,13 +204,13 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                     
                     <div className="flex justify-between items-center">
                       <p className={`text-sm truncate flex-1 ${
-                        selectedChat?.id === chat.id ? 'text-emerald-50' : 'text-gray-600'
+                        selectedChat?.id === chat.id && activePanel === 'chat' ? 'text-emerald-50' : 'text-gray-600'
                       }`}>
                         {chat.lastMessage}
                       </p>
                       {chat.unreadCount > 0 && (
                         <Badge className={`ml-3 px-2 py-1 text-xs font-bold min-w-[20px] h-5 flex items-center justify-center shadow-md transition-all duration-300 ${
-                          selectedChat?.id === chat.id 
+                          selectedChat?.id === chat.id && activePanel === 'chat'
                             ? 'bg-white/90 text-emerald-600 hover:bg-white' 
                             : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/25'
                         }`}>
@@ -183,7 +222,7 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
                 </div>
                 
                 {/* Hover effect overlay */}
-                {selectedChat?.id !== chat.id && (
+                {!(selectedChat?.id === chat.id && activePanel === 'chat') && (
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/0 via-emerald-50/50 to-teal-50/30 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-xl"></div>
                 )}
               </SidebarMenuButton>
@@ -203,6 +242,46 @@ export function AppSidebar({ selectedChat, onChatSelect }: AppSidebarProps) {
           </div>
         )}
       </SidebarContent>
+
+      {/* Footer with menu items */}
+      <SidebarFooter className="p-3 border-t border-emerald-100/50 bg-gradient-to-br from-emerald-50/50 via-teal-50/50 to-cyan-50/50">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => onPanelChange('settings')}
+              className={`w-full rounded-xl transition-all duration-300 ${
+                activePanel === 'settings'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                  : 'hover:bg-emerald-100/80 text-gray-700'
+              }`}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="font-medium">Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
+              <User className="h-4 w-4" />
+              <span className="font-medium">Profile</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
+              <Phone className="h-4 w-4" />
+              <span className="font-medium">Calls</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
+              <Video className="h-4 w-4" />
+              <span className="font-medium">Video Calls</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

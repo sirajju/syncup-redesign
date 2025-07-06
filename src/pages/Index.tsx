@@ -2,6 +2,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatArea } from "@/components/ChatArea";
+import { SettingsPanel } from "@/components/SettingsPanel";
+import { NewChatPanel } from "@/components/NewChatPanel";
 import { useState } from "react";
 
 export interface Chat {
@@ -22,8 +24,11 @@ export interface Message {
   status: 'sent' | 'delivered' | 'read';
 }
 
+export type ActivePanel = 'chat' | 'settings' | 'new-chat';
+
 const Index = () => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [activePanel, setActivePanel] = useState<ActivePanel>('chat');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -66,24 +71,44 @@ const Index = () => {
     setMessages(prev => [...prev, newMessage]);
   };
 
+  const handleContactSelect = (contact: Chat) => {
+    setSelectedChat(contact);
+    setActivePanel('chat');
+  };
+
+  const renderMainContent = () => {
+    switch (activePanel) {
+      case 'settings':
+        return <SettingsPanel onBack={() => setActivePanel('chat')} />;
+      case 'new-chat':
+        return <NewChatPanel onContactSelect={handleContactSelect} onBack={() => setActivePanel('chat')} />;
+      default:
+        return (
+          <ChatArea 
+            selectedChat={selectedChat}
+            messages={messages}
+            onSendMessage={addMessage}
+          />
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
       <SidebarProvider>
         <div className="flex w-full h-screen">
           <AppSidebar 
             selectedChat={selectedChat} 
-            onChatSelect={setSelectedChat} 
+            onChatSelect={setSelectedChat}
+            activePanel={activePanel}
+            onPanelChange={setActivePanel}
           />
           <main className="flex-1 flex flex-col">
             {/* Add sidebar trigger for mobile */}
             <div className="md:hidden p-2 border-b border-gray-200/50 bg-white/70 backdrop-blur-sm">
               <SidebarTrigger />
             </div>
-            <ChatArea 
-              selectedChat={selectedChat}
-              messages={messages}
-              onSendMessage={addMessage}
-            />
+            {renderMainContent()}
           </main>
         </div>
       </SidebarProvider>
