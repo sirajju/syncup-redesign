@@ -4,10 +4,14 @@ const toml = require('toml');
 const dotenv = require('dotenv');
 const concurrently = require('concurrently');
 
-// Load environment variables from .env
-const envPath = path.join(__dirname, '.env');
-const envConfig = dotenv.parse(fs.readFileSync(envPath));
-const envVars = Object.entries(envConfig).map(([key, val]) => `${key}=${val}`).join(' ');
+const loadEnv = (dirname) => {
+  const envPath = path.join(dirname, '.env.development');
+  if (fs.existsSync(envPath)) {
+    const envConfig = dotenv.parse(fs.readFileSync(envPath));
+    return Object.entries(envConfig).map(([key, val]) => `${key}=${val}`).join(' ');
+  }
+  return '';
+}
 
 // Load TOML config
 function getCommandFromToml(dir) {
@@ -21,14 +25,14 @@ const frontend = getCommandFromToml('frontend');
 const backend = getCommandFromToml('backend');
 
 // Prepend cross-env to the command
-function withEnv(cmd) {
-  return `cross-env ${envVars} ${cmd}`;
+function withEnv(dir,cmd) {
+  return `cross-env ${loadEnv(dir)} ${cmd}`;
 }
 
 // Run both concurrently
 concurrently([
-  { command: withEnv(frontend.command), name: 'frontend', cwd: frontend.cwd },
-  { command: withEnv(backend.command), name: 'backend', cwd: backend.cwd },
+  { command: withEnv('frontend', frontend.command), name: 'frontend', cwd: frontend.cwd },
+  { command: withEnv('backend', backend.command), name: 'backend', cwd: backend.cwd },
 ], {
   prefix: 'name',
   killOthers: ['failure'],
