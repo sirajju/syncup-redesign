@@ -1,10 +1,9 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Phone, Video, MoreVertical } from "lucide-react";
+import { Phone, Video, MoreVertical } from "lucide-react";
 import { Chat, Message } from "@/pages/Index";
+import { EnhancedMessageInput } from "./EnhancedMessageInput";
 
 interface ChatAreaProps {
   selectedChat: Chat | null;
@@ -13,21 +12,6 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ selectedChat, messages, onSendMessage }: ChatAreaProps) {
-  const [newMessage, setNewMessage] = useState("");
-
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage);
-      setNewMessage("");
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
   if (!selectedChat) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50/50">
@@ -37,7 +21,7 @@ export function ChatArea({ selectedChat, messages, onSendMessage }: ChatAreaProp
               <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to ChatApp</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to StyleChat</h3>
           <p className="text-gray-600">Select a chat to start messaging</p>
         </div>
       </div>
@@ -130,25 +114,8 @@ export function ChatArea({ selectedChat, messages, onSendMessage }: ChatAreaProp
         ))}
       </div>
 
-      {/* Message Input */}
-      <div className="border-t border-gray-200/50 p-4 bg-white/70 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1 bg-gray-50/80 border-gray-200/50 focus:bg-white transition-colors"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className="bg-emerald-500 hover:bg-emerald-600 h-10 w-10 p-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Enhanced Message Input */}
+      <EnhancedMessageInput onSendMessage={onSendMessage} />
     </div>
   );
 }

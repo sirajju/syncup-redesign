@@ -8,13 +8,14 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Search, MessageCircle, Settings, Plus, MoreVertical, User, Phone, Video } from "lucide-react";
+import { Search, MessageCircle, Plus, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Chat, ActivePanel } from "@/pages/Index";
 import { useState } from "react";
+import { QuickActions } from "./QuickActions";
 
 interface AppSidebarProps {
   selectedChat: Chat | null;
@@ -243,44 +244,12 @@ export function AppSidebar({ selectedChat, onChatSelect, activePanel, onPanelCha
         )}
       </SidebarContent>
 
-      {/* Footer with menu items */}
+      {/* Footer with quick actions */}
       <SidebarFooter className="p-3 border-t border-emerald-100/50 bg-gradient-to-br from-emerald-50/50 via-teal-50/50 to-cyan-50/50">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => onPanelChange('settings')}
-              className={`w-full rounded-xl transition-all duration-300 ${
-                activePanel === 'settings'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                  : 'hover:bg-emerald-100/80 text-gray-700'
-              }`}
-            >
-              <Settings className="h-4 w-4" />
-              <span className="font-medium">Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          
-          <SidebarMenuItem>
-            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
-              <User className="h-4 w-4" />
-              <span className="font-medium">Profile</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          
-          <SidebarMenuItem>
-            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
-              <Phone className="h-4 w-4" />
-              <span className="font-medium">Calls</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          
-          <SidebarMenuItem>
-            <SidebarMenuButton className="w-full rounded-xl hover:bg-emerald-100/80 text-gray-700 transition-all duration-300">
-              <Video className="h-4 w-4" />
-              <span className="font-medium">Video Calls</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <QuickActions 
+          activePanel={activePanel}
+          onPanelChange={onPanelChange}
+        />
       </SidebarFooter>
     </Sidebar>
   );
