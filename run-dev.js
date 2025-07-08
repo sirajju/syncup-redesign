@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const concurrently = require('concurrently');
 
 const loadEnv = (dirname) => {
-  const envPath = path.join(dirname, '.env.development');
+  const envPath = path.join(dirname, '.env');
   if (fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath));
     return Object.entries(envConfig).map(([key, val]) => `${key}=${val}`).join(' ');
@@ -25,16 +25,27 @@ const frontend = getCommandFromToml('frontend');
 const backend = getCommandFromToml('backend');
 
 // Prepend cross-env to the command
-function withEnv(dir,cmd) {
+function withEnv(dir, cmd) {
   return `cross-env ${loadEnv(dir)} ${cmd}`;
 }
 
 // Run both concurrently
-concurrently([
-  { command: withEnv('frontend', frontend.command), name: 'frontend', cwd: frontend.cwd },
-  { command: withEnv('backend', backend.command), name: 'backend', cwd: backend.cwd },
-], {
-  prefix: 'name',
-  killOthers: ['failure'],
-  restartTries: 1
-});
+concurrently(
+  [
+    {
+      command: withEnv('backend', backend.command),
+      name: '🧠  BACKENDD',
+      cwd: backend.cwd
+    },
+    {
+      command: withEnv('frontend', frontend.command),
+      name: '💻  FRONTEND',
+      cwd: frontend.cwd
+    }
+  ],
+  {
+    prefix: 'name',
+    killOthers: ['failure'],
+    restartTries: 1
+  }
+);

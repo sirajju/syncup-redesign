@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "./prismabox"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String    @unique
+  displayName   String?
+  bio           String?
+  avatarUrl     String?
+  phoneNumber   String?   @unique
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime?
+  statusMessage String?
+
+  // Authentication
+  passwordHash     String
+  emailVerified    Boolean      @default(false)
+  twoFactorEnabled Boolean      @default(false)
+  authProvider     AuthProvider @default(CREDENTIALS)
+  providerId       String?
+
+  // Preferences
+  theme                    Theme   @default(LIGHT)
+  language                 String  @default("en")
+  pushNotificationsEnabled Boolean @default(true)
+  configurations           Json?
+
+  // WebSocket-related
+  currentDeviceId String? // device identifier for pushing targeted updates
+  isTyping        Boolean @default(false) // for real-time typing status
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  conversations    ConversationParticipant[]
+  messages         Message[]
+  messageReactions MessageReaction[]
+  contacts         Contact[]                 @relation("UserContacts")
+  blockedUsers     Block[]                   @relation("UserBlocks")
+  sessions         Session[]
+
+  @@map("users")
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+  FACEBOOK
+  APPLE
+}
+
+enum Theme {
+  LIGHT
+  DARK
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  device    String?
+  ipAddress String?
+  userAgent String?
+}
+
+model Conversation {
+  id           String                    @id @default(uuid())
+  isGroup      Boolean                   @default(false)
+  title        String?
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  id                String   @id @default(uuid())
+  userId            String
+  conversationId    String
+  joinedAt          DateTime @default(now())
+  lastReadMessageId String?
+
+  user         User         @relation(fields: [userId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  senderId       String
+  conversationId String
+  content        String?
+  mediaUrl       String?
+  messageType    MessageType  @default(TEXT)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDelivered    Boolean      @default(false)
+  isRead         Boolean      @default(false)
+  isEdited       Boolean      @default(false)
+  isPinned       Boolean      @default(false)
+  isDeleted      Boolean      @default(false)
+  sender         User         @relation(fields: [senderId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  reactions MessageReaction[]
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+  AUDIO
+  SYSTEM
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([messageId, userId, emoji]) // user can react with one emoji only once
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  userId    String
+  contactId String
+  nickname  String?
+  createdAt DateTime @default(now())
+  user      User     @relation("UserContacts", fields: [userId], references: [id])
+
+  @@unique([userId, contactId])
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  blocked User @relation("UserBlocks", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+}

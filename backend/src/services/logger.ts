@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import winston, { Logger } from "winston";
+import winston from "winston";
 
 const stripAnsi = (str: string) => {
   return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, "");
@@ -40,9 +40,16 @@ const winstonLogger = winston.createLogger({
   ),
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({
+      filename: Bun.fileURLToPath(import.meta.resolve("../logs/error.log")),
+      level: "error",
+    }),
+    new winston.transports.File({
+      filename: Bun.fileURLToPath(import.meta.resolve("../logs/combined.log")),
+      level: "info",
+    }),
   ],
 });
 
 export const loggerService = new Elysia().decorate("logger", winstonLogger);
-export default winstonLogger
+export default winstonLogger;
