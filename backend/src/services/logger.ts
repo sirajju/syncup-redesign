@@ -26,7 +26,7 @@ winston.addColors({
   debug: "green",
 });
 
-const winstonLogger = winston.createLogger({
+const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
@@ -51,5 +51,5 @@ const winstonLogger = winston.createLogger({
   ],
 });
 
-export const loggerService = new Elysia().decorate("logger", winstonLogger);
-export default winstonLogger;
+export const loggerService = new Elysia().decorate("logger", logger);
+export default logger;

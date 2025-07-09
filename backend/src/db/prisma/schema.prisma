@@ -56,8 +56,6 @@ model User {
   contacts         Contact[]                 @relation("UserContacts")
   blockedUsers     Block[]                   @relation("UserBlocks")
   sessions         Session[]
-
-  @@map("users")
 }
 
 enum AuthProvider {
@@ -76,7 +74,6 @@ model Session {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  token     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   expiresAt DateTime
@@ -109,22 +106,22 @@ model ConversationParticipant {
 }
 
 model Message {
-  id             String       @id @default(uuid())
+  id             String            @id @default(uuid())
   senderId       String
   conversationId String
   content        String?
   mediaUrl       String?
-  messageType    MessageType  @default(TEXT)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  isDelivered    Boolean      @default(false)
-  isRead         Boolean      @default(false)
-  isEdited       Boolean      @default(false)
-  isPinned       Boolean      @default(false)
-  isDeleted      Boolean      @default(false)
-  sender         User         @relation(fields: [senderId], references: [id])
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  reactions MessageReaction[]
+  messageType    MessageType       @default(TEXT)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  isDelivered    Boolean           @default(false)
+  isRead         Boolean           @default(false)
+  isEdited       Boolean           @default(false)
+  isPinned       Boolean           @default(false)
+  isDeleted      Boolean           @default(false)
+  sender         User              @relation(fields: [senderId], references: [id])
+  conversation   Conversation      @relation(fields: [conversationId], references: [id])
+  reactions      MessageReaction[]
 }
 
 enum MessageType {

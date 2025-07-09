@@ -14,4 +14,4 @@ client
     process.exit(1);
   });
 
-export const dbSservice = new Elysia().decorate("db", client);
+export const dbService = new Elysia().decorate("db", client);

@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import logger, { loggerService } from "./src/services/logger";
 import swagger from "@elysiajs/swagger";
 
-const PORT = process.env.BACKEND_PORT || 3000;
+const PORT = process.env.BACKEND_PORT || 5000 ;
 
 new Elysia()
   .use(loggerService)
