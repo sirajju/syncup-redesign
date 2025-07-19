@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import logger, { loggerService } from "./src/services/logger";
 import swagger from "@elysiajs/swagger";
+import { apiVersionOne } from "./src/api";
 
 const PORT = process.env.BACKEND_PORT || 5000 ;
 
@@ -27,9 +28,7 @@ new Elysia()
       },
     })
   )
-  .get("/", () => {
-    return {};
-  })
+  .use(apiVersionOne)
   .listen(PORT, ({ hostname, port }) => {
     logger.info(`Server is running on http://${hostname}:${port}`);
   });

@@ -45,7 +45,6 @@ concurrently(
   ],
   {
     prefix: 'name',
-    killOthers: ['failure'],
     restartTries: 1
   }
 );

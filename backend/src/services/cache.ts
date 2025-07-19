@@ -12,4 +12,43 @@ connection.on("error", (err) => {
   logger.error("Redis connection error:", err);
 });
 
-export const cacheService = new Elysia().decorate("cache", connection);
+class cacheImplementation {
+  constructor(private redis: Redis) {
+    this.redis = redis;
+  }
+
+  async get(key: string): Promise<string | null> {
+    return this.redis.get(key);
+  }
+
+  async getByPattern(pattern: string): Promise<string[]> {
+    const keys = await this.redis.keys(pattern);
+    const values = await Promise.all(keys.map((key) => this.redis.get(key)));
+    return values.filter((value) => value !== null) as string[];
+  }
+
+  async set(key: string, value: string, ttl?: number): Promise<void> {
+    if (ttl) {
+      await this.redis.set(key, value, "EX", ttl);
+    } else {
+      await this.redis.set(key, value);
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.redis.del(key);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const result = await this.redis.exists(key);
+    return result === 1;
+  }
+  async setex(key: string, value: string, ttl: number): Promise<void> {
+    await this.redis.set(key, value, "EX", ttl);
+  }
+}
+
+export const cacheService = new Elysia().decorate(
+  "cache",
+  new cacheImplementation(connection)
+);

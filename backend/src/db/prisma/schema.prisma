@@ -56,6 +56,34 @@ model User {
   contacts         Contact[]                 @relation("UserContacts")
   blockedUsers     Block[]                   @relation("UserBlocks")
   sessions         Session[]
+  otpAuth          OtpAuth[]
+}
+
+model OtpAuth {
+  id        String    @id @default(uuid())
+  userId    String
+  code      Int?
+  user      User      @relation(fields: [userId], references: [id])
+  chars     String?
+  kind      OtpKind
+  purpose   OtpPupose
+  expiresIn Int?
+  expireAt  DateTime
+  createdAt DateTime  @default(now())
+  digits    Int
+}
+
+enum OtpKind {
+  DIGITS
+  CHARS
+  MIX
+}
+
+enum OtpPupose {
+  LOGIN
+  REGISTRATION
+  VERIFICATION
+  OTHER
 }
 
 enum AuthProvider {
@@ -71,12 +99,13 @@ enum Theme {
 }
 
 model Session {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  user      User         @relation(fields: [userId], references: [id])
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
   expiresAt DateTime
+  type      AuthProvider @default(CREDENTIALS)
   device    String?
   ipAddress String?
   userAgent String?
