@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "./generated"
+  provider        = "prisma-client-js"
+  output          = "./generated"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["chat", "diary"]
   url      = env("DATABASE_URL")
 }
 
@@ -14,6 +16,40 @@ generator prismabox {
   typeboxImportVariableName   = "t"
   inputModel                  = true
   output                      = "./prismabox"
+}
+
+model GlobalConfig {
+  id                          String    @id @default(uuid())
+  key                         String    @unique
+  isActive                    Boolean   @default(true)
+  metadata                    Json?
+  isMaintenanceMode           Boolean   @default(false)
+  maintenanceStartTime        DateTime?
+  maintenanceEndTime          DateTime?
+  isMaintenanceScheduled      Boolean   @default(false)
+  maintenanceMessage          String?
+  isRegistrationAllowed       Boolean   @default(true)
+  isTwoFactorAuthRequired     Boolean   @default(false)
+  isEmailVerificationRequired Boolean   @default(false)
+  isPasswordResetAllowed      Boolean   @default(true)
+  isPushNotificationsEnabled  Boolean   @default(true)
+  isWebSocketEnabled          Boolean   @default(true)
+  isFileSharingEnabled        Boolean   @default(true)
+  isGroupConversationsEnabled Boolean   @default(true)
+  isMessageReactionsEnabled   Boolean   @default(true)
+  isTypingIndicatorEnabled    Boolean   @default(true)
+  isMessageEditingEnabled     Boolean   @default(true)
+  isMessageDeletionEnabled    Boolean   @default(true)
+  isMessagePinningEnabled     Boolean   @default(true)
+  isContactManagementEnabled  Boolean   @default(true)
+  isBlockingUsersEnabled      Boolean   @default(true)
+  otherSettings               Json?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  @@index([key])
+  @@map("GlobalConfig")
+  @@schema("chat")
 }
 
 model User {
@@ -34,6 +70,8 @@ model User {
   twoFactorEnabled Boolean      @default(false)
   authProvider     AuthProvider @default(CREDENTIALS)
   providerId       String?
+  isBanned         Boolean      @default(false)
+  banReason        String?
 
   // Preferences
   theme                    Theme   @default(LIGHT)
@@ -57,6 +95,9 @@ model User {
   blockedUsers     Block[]                   @relation("UserBlocks")
   sessions         Session[]
   otpAuth          OtpAuth[]
+
+  @@map("user")
+  @@schema("chat")
 }
 
 model OtpAuth {
@@ -71,31 +112,8 @@ model OtpAuth {
   expireAt  DateTime
   createdAt DateTime  @default(now())
   digits    Int
-}
 
-enum OtpKind {
-  DIGITS
-  CHARS
-  MIX
-}
-
-enum OtpPupose {
-  LOGIN
-  REGISTRATION
-  VERIFICATION
-  OTHER
-}
-
-enum AuthProvider {
-  CREDENTIALS
-  GOOGLE
-  FACEBOOK
-  APPLE
-}
-
-enum Theme {
-  LIGHT
-  DARK
+  @@schema("chat")
 }
 
 model Session {
@@ -109,6 +127,8 @@ model Session {
   device    String?
   ipAddress String?
   userAgent String?
+
+  @@schema("chat")
 }
 
 model Conversation {
@@ -119,6 +139,8 @@ model Conversation {
   messages     Message[]
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
+
+  @@schema("chat")
 }
 
 model ConversationParticipant {
@@ -132,6 +154,7 @@ model ConversationParticipant {
   conversation Conversation @relation(fields: [conversationId], references: [id])
 
   @@unique([userId, conversationId])
+  @@schema("chat")
 }
 
 model Message {
@@ -151,15 +174,8 @@ model Message {
   sender         User              @relation(fields: [senderId], references: [id])
   conversation   Conversation      @relation(fields: [conversationId], references: [id])
   reactions      MessageReaction[]
-}
 
-enum MessageType {
-  TEXT
-  IMAGE
-  VIDEO
-  FILE
-  AUDIO
-  SYSTEM
+  @@schema("chat")
 }
 
 model MessageReaction {
@@ -173,6 +189,7 @@ model MessageReaction {
   user    User    @relation(fields: [userId], references: [id])
 
   @@unique([messageId, userId, emoji]) // user can react with one emoji only once
+  @@schema("chat")
 }
 
 model Contact {
@@ -184,6 +201,7 @@ model Contact {
   user      User     @relation("UserContacts", fields: [userId], references: [id])
 
   @@unique([userId, contactId])
+  @@schema("chat")
 }
 
 model Block {
@@ -196,4 +214,49 @@ model Block {
   blocked User @relation("UserBlocks", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+  @@schema("chat")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+  AUDIO
+  SYSTEM
+
+  @@schema("chat")
+}
+
+enum OtpKind {
+  DIGITS
+  CHARS
+  MIX
+
+  @@schema("chat")
+}
+
+enum OtpPupose {
+  LOGIN
+  REGISTRATION
+  VERIFICATION
+  OTHER
+
+  @@schema("chat")
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+  FACEBOOK
+  APPLE
+
+  @@schema("chat")
+}
+
+enum Theme {
+  LIGHT
+  DARK
+
+  @@schema("chat")
 }

@@ -1,11 +1,15 @@
 import Elysia from "elysia";
 import { auth } from "./auth";
+import { config } from "./config";
+import { syncupApi } from "./syncup";
+import { soulSyncApi } from "./soulsync";
 
 export const apiVersionOne = new Elysia({
-  prefix: "/api/v1",
+  prefix: "/api",
 })
+  // Common apis for auth & config
+  .use(config)
   .use(auth)
-  .get("/test", ({ request }) => {
-    console.log(request.headers);
-    return { status: 200 };
-  });
+  // Individual apis for diff apps
+  .use(syncupApi)
+  .use(soulSyncApi);

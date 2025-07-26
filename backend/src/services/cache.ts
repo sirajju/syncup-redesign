@@ -35,6 +35,22 @@ class cacheImplementation {
     }
   }
 
+  async getWithCallback(
+    key: string,
+    callback: () => Promise<any>,
+    ttl?: number
+  ): Promise<string> {
+    const cachedValue = await this.get(key);
+    if (cachedValue) {
+      return cachedValue;
+    }
+    let value = await callback();
+    if (!value) return value;
+    if (typeof value == "object") value = JSON.stringify(value);
+    await this.set(key, value, ttl);
+    return value;
+  }
+
   async delete(key: string): Promise<void> {
     await this.redis.del(key);
   }

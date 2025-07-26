@@ -12,12 +12,18 @@ export const jwtService = new Elysia().decorate("jwt", {
       .sign(new TextEncoder().encode(JWT_SECRET));
     return jwt;
   },
-  async verify(token: string) {
+  async verify(token: string, type?: string) {
     try {
       const { payload } = await jwtVerify(
         token,
         new TextEncoder().encode(JWT_SECRET)
       );
+
+      console.log(payload);
+
+      // CHECK if the token is of the expected type (Prevents modiftication)
+      if (type && payload.type !== type) return;
+
       return payload;
     } catch (error) {}
   },

@@ -1,15 +1,19 @@
 import { Elysia } from "elysia";
-import logger, { loggerService } from "./src/services/logger";
+import logger from "./src/services/logger";
 import swagger from "@elysiajs/swagger";
 import { apiVersionOne } from "./src/api";
+import cors from "@elysiajs/cors";
+import { config } from "./src/api/config";
 
-const PORT = process.env.BACKEND_PORT || 5000 ;
+const PORT = process.env.BACKEND_PORT || 5000;
 
 new Elysia()
-  .use(loggerService)
-  .resolve({ as: "scoped" }, ({ logger, request, path }) => {
-    logger.info(`Request received ${request.method} ${path}`);
-  })
+  .use(config)
+  .use(
+    cors({
+      origin: new RegExp(process.env.CORS_ORIGIN!, "i"),
+    })
+  )
   .use(
     swagger({
       autoDarkMode: true,
