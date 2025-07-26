@@ -44,5 +44,5 @@ yarn-error.log*
 **/*.log
 package-lock.json
 **/*.bun
-**/prisma/generated/
-**/prisma/prismabox
+**/db/**/generated
+**/db/**/prismabox

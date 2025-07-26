@@ -6,8 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["chat", "diary"]
-  url      = env("DATABASE_URL")
+  url      = env("SYNCUP_DATABASE_URL")
 }
 
 generator prismabox {
@@ -47,9 +46,6 @@ model GlobalConfig {
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
 
-  @@index([key])
-  @@map("GlobalConfig")
-  @@schema("chat")
 }
 
 model User {
@@ -96,8 +92,6 @@ model User {
   sessions         Session[]
   otpAuth          OtpAuth[]
 
-  @@map("user")
-  @@schema("chat")
 }
 
 model OtpAuth {
@@ -113,7 +107,6 @@ model OtpAuth {
   createdAt DateTime  @default(now())
   digits    Int
 
-  @@schema("chat")
 }
 
 model Session {
@@ -128,7 +121,6 @@ model Session {
   ipAddress String?
   userAgent String?
 
-  @@schema("chat")
 }
 
 model Conversation {
@@ -140,7 +132,6 @@ model Conversation {
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
 
-  @@schema("chat")
 }
 
 model ConversationParticipant {
@@ -153,8 +144,6 @@ model ConversationParticipant {
   user         User         @relation(fields: [userId], references: [id])
   conversation Conversation @relation(fields: [conversationId], references: [id])
 
-  @@unique([userId, conversationId])
-  @@schema("chat")
 }
 
 model Message {
@@ -175,7 +164,6 @@ model Message {
   conversation   Conversation      @relation(fields: [conversationId], references: [id])
   reactions      MessageReaction[]
 
-  @@schema("chat")
 }
 
 model MessageReaction {
@@ -188,8 +176,6 @@ model MessageReaction {
   message Message @relation(fields: [messageId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
 
-  @@unique([messageId, userId, emoji]) // user can react with one emoji only once
-  @@schema("chat")
 }
 
 model Contact {
@@ -200,8 +186,6 @@ model Contact {
   createdAt DateTime @default(now())
   user      User     @relation("UserContacts", fields: [userId], references: [id])
 
-  @@unique([userId, contactId])
-  @@schema("chat")
 }
 
 model Block {
@@ -213,8 +197,6 @@ model Block {
 
   blocked User @relation("UserBlocks", fields: [blockedId], references: [id])
 
-  @@unique([blockerId, blockedId])
-  @@schema("chat")
 }
 
 enum MessageType {
@@ -225,7 +207,6 @@ enum MessageType {
   AUDIO
   SYSTEM
 
-  @@schema("chat")
 }
 
 enum OtpKind {
@@ -233,7 +214,6 @@ enum OtpKind {
   CHARS
   MIX
 
-  @@schema("chat")
 }
 
 enum OtpPupose {
@@ -242,7 +222,6 @@ enum OtpPupose {
   VERIFICATION
   OTHER
 
-  @@schema("chat")
 }
 
 enum AuthProvider {
@@ -251,12 +230,10 @@ enum AuthProvider {
   FACEBOOK
   APPLE
 
-  @@schema("chat")
 }
 
 enum Theme {
   LIGHT
   DARK
 
-  @@schema("chat")
 }

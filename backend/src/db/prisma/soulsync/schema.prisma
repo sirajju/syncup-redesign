@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIARY_DATABASE_URL")
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "./prismabox"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String    @unique
+  displayName   String?
+  bio           String?
+  avatarUrl     String?
+  phoneNumber   String?   @unique
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime?
+  statusMessage String?
+
+  // Authentication
+  passwordHash     String
+  emailVerified    Boolean      @default(false)
+  twoFactorEnabled Boolean      @default(false)
+  authProvider     AuthProvider @default(CREDENTIALS)
+  providerId       String?
+  isBanned         Boolean      @default(false)
+  banReason        String?
+
+  // Preferences
+  theme                    Theme   @default(LIGHT)
+  language                 String  @default("en")
+  pushNotificationsEnabled Boolean @default(true)
+  configurations           Json?
+
+  // WebSocket-related
+  currentDeviceId String? // device identifier for pushing targeted updates
+  isTyping        Boolean @default(false) // for real-time typing status
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions   Session[]
+  otpAuth    OtpAuth[]
+  DiaryEntry DiaryEntry[]
+
+}
+
+model GlobalConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OtpAuth {
+  id        String    @id @default(uuid())
+  userId    String
+  code      Int?
+  user      User      @relation(fields: [userId], references: [id])
+  chars     String?
+  kind      OtpKind
+  purpose   OtpPupose
+  expiresIn Int?
+  expireAt  DateTime
+  createdAt DateTime  @default(now())
+  digits    Int
+
+}
+
+model Session {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  expiresAt DateTime
+  type      AuthProvider @default(CREDENTIALS)
+  device    String?
+  ipAddress String?
+  userAgent String?
+
+}
+
+enum OtpKind {
+  DIGITS
+  CHARS
+  MIX
+
+}
+
+enum OtpPupose {
+  LOGIN
+  REGISTRATION
+  VERIFICATION
+  OTHER
+
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+  FACEBOOK
+  APPLE
+
+}
+
+enum Theme {
+  LIGHT
+  DARK
+
+}
+
+// Diary models
+model DiaryEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isPublic    Boolean  @default(false)
+  tags        String[]
+  mood        String?
+  location    String?
+  weather     String?
+  attachments String[]
+  user        User     @relation(fields: [userId], references: [id])
+  views       Int      @default(0)
+  isArchived  Boolean  @default(false)
+  isDeleted   Boolean  @default(false)
+  isPinned    Boolean  @default(false)
+  isDraft     Boolean  @default(false)
+  isLocked    Boolean  @default(false)
+  metadata    Json     @default("{}")
+
+}

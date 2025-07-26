@@ -1,9 +1,9 @@
 import Elysia, { status, t } from "elysia";
-import { dbService } from "../services/db";
-import { cacheService } from "../services/cache";
-import { generateOtp } from "../utils/basic";
-import { mailService } from "../services/mail";
-import { authService, TokenType } from "../services/auth";
+import { dbService } from "../../services/db";
+import { cacheService } from "../../services/cache";
+import { generateOtp } from "../../utils/basic";
+import { mailService } from "../../services/mail";
+import { authService, TokenType } from "../../services/auth";
 
 const OTP_EXPIRATION = 5 * 60 * 1000; // 5 minutes
 const OTP_EXPIRATION_STRING = "5m";
@@ -195,7 +195,7 @@ export const auth = new Elysia({
           passwordHash,
           username,
           emailVerified: false,
-          twoFactorEnabled: true,
+          twoFactorEnabled: false,
         },
       });
       mailer.sendMail({

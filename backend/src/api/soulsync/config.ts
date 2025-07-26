@@ -1,12 +1,11 @@
 import Elysia from "elysia";
-import { dbService } from "../services/db";
-import { cacheService } from "../services/cache";
-// import cron, { Patterns } from "@elysiajs/cron";
-import { loggerService } from "../services/logger";
-import { GlobalConfig } from "../db/prisma/generated";
+import { soulSyncDbService } from "../../services/db";
+import { cacheService } from "../../services/cache";
+import { loggerService } from "../../services/logger";
+import { GlobalConfig } from "../../db/prisma/syncup/generated";
 
 export const config = new Elysia()
-  .use(dbService)
+  .use(soulSyncDbService)
   .use(cacheService)
   .use(loggerService)
   .resolve({ as: "scoped" }, async ({ db, cache }) => {
@@ -61,7 +60,6 @@ export const config = new Elysia()
         const endTime = new Date(maintenanceEndTime).getTime();
         if (timeLeft < 0) {
           cache.delete("config");
-          console.log("Maintenance mode ended, updating config in DB");
           const data = await db.globalConfig.update({
             where: { id },
             data: {
