@@ -71,7 +71,7 @@ export const authService = new Elysia().decorate(
 
 export const authenticationService = new Elysia().use(authService).resolve(
   {
-    as: "scoped",
+    as: "global",
   },
   async ({ cookie, auth, status }) => {
     const { a_t } = cookie;

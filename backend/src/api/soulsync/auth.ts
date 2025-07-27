@@ -123,9 +123,22 @@ export const auth = new Elysia({
         };
       }
 
+      const session = await _db.session.create({
+        data: {
+          userId: user.id,
+          ipAddress: `${server!.requestIP(request)?.address}`,
+          expiresAt: new Date(),
+          userAgent: request.headers.get("user-agent"),
+          isActive: true,
+        },
+      });
+
+      await _db;
+
       const { access_token, refresh_token } = await auth.getAccessToken({
         id: user.id,
         email: user.email,
+        sessionId: session.id,
       });
 
       cookie.a_t.set({
@@ -141,16 +154,6 @@ export const auth = new Elysia({
         sameSite: true,
         httpOnly: true,
         path: path.replace("/login", "/refresh"),
-      });
-
-      await _db.session.create({
-        data: {
-          userId: user.id,
-          ipAddress: `${server!.requestIP(request)?.address}`,
-          expiresAt: new Date(),
-          userAgent: request.headers.get("user-agent"),
-          isActive: true,
-        },
       });
 
       return {
@@ -420,49 +423,52 @@ export const auth = new Elysia({
         success: false,
       };
     }
-    const user = await _db.user.findUnique({
-      where: { id: `${payload.id}` },
+    const session = await _db.session.findUnique({
+      where: { userId: `${payload.id}` },
+      select: {
+        isActive: true,
+        user: {
+          select: {
+            email: true,
+            username: true,
+            isBanned: true,
+            banReason: true,
+            id: true,
+          },
+        },
+      },
     });
 
-    if (!user) {
+    if (!session) {
       set.status = 404;
       return {
         status: 404,
-        message: "User not found",
-        code: "USER_NOT_FOUND",
+        message: "session not found",
+        code: "SESSION_NOT_FOUND",
         success: false,
       };
     }
 
-    if (user.isBanned) {
+    if (session.user.isBanned) {
       set.status = 403;
       return {
         status: 403,
-        message: user.banReason || "You are banned from this platform",
+        message: session.user.banReason || "You are banned from this platform",
         code: "USER_BANNED",
         success: false,
       };
     }
 
-    if (!user) {
+    if (!session) {
       set.status = 404;
       return {
         status: 404,
-        message: "User not found",
-        code: "USER_NOT_FOUND",
+        message: "session not found",
+        code: "SESSION_NOT_FOUND",
         success: false,
       };
     }
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.username,
-        twoFactorEnabled: user.twoFactorEnabled,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    };
+    return session;
   })
   .delete("/logout", async ({ cookie, _db, auth, server, request, set }) => {
     const { a_t, r_t } = cookie;
