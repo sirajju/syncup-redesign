@@ -51,10 +51,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions   Session[]
-  otpAuth    OtpAuth[]
-  DiaryEntry DiaryEntry[]
-
+  sessions      Session[]
+  otpAuth       OtpAuth[]
+  DiaryEntry    DiaryEntry[]
+  UserAppConfig UserAppConfig?
 }
 
 model GlobalConfig {
@@ -78,7 +78,6 @@ model OtpAuth {
   expireAt  DateTime
   createdAt DateTime  @default(now())
   digits    Int
-
 }
 
 model Session {
@@ -92,14 +91,61 @@ model Session {
   device    String?
   ipAddress String?
   userAgent String?
+}
 
+model DiaryEntry {
+  id             String   @id @default(uuid())
+  userId         String
+  title          String
+  content        String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  isPublic       Boolean  @default(false)
+  tags           String[]
+  mood           String?
+  location       String?
+  date           DateTime
+  keyPoints      String[] @default([])
+  keyPointsCount Int      @default(0)
+  securityKey    String?
+  weather        String?
+  attachments    String[]
+  user           User     @relation(fields: [userId], references: [id])
+  views          Int      @default(0)
+  isArchived     Boolean  @default(false)
+  isDeleted      Boolean  @default(false)
+  isPinned       Boolean  @default(false)
+  isDraft        Boolean  @default(false)
+  isLocked       Boolean  @default(false)
+  metadata       Json     @default("{}")
+}
+
+model UserAppConfig {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  theme                Theme    @default(LIGHT)
+  language             String   @default("en")
+  pushEnabled          Boolean  @default(true)
+  timezone             String   @default("UTC")
+  notificationsEnabled Boolean  @default(true)
+  privacySettings      Json     @default("{}")
+  securitySettings     Json     @default("{}")
+  isActive             Boolean  @default(true)
+  mood                 Mood     @default(NEUTRAL)
+  lastLogin            DateTime @default(now())
+  mode                 AppMode  @default(NORMAL)
+  description          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  moodTheme            Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 enum OtpKind {
   DIGITS
   CHARS
   MIX
-
 }
 
 enum OtpPupose {
@@ -107,7 +153,6 @@ enum OtpPupose {
   REGISTRATION
   VERIFICATION
   OTHER
-
 }
 
 enum AuthProvider {
@@ -115,36 +160,33 @@ enum AuthProvider {
   GOOGLE
   FACEBOOK
   APPLE
-
 }
 
 enum Theme {
   LIGHT
   DARK
+}
 
+enum Mood {
+  HAPPY
+  SAD
+  ANGRY
+  NEUTRAL
+  EXCITED
+  CALM
+  CONTENT
+  ANXIOUS
+  CONFUSED
+  FRUSTRATED
+  TIRED
+}
+
+enum AppMode {
+  NORMAL
+  ZEN
+  RANT
+  DREAM
+  INCREDIBLE
 }
 
 // Diary models
-model DiaryEntry {
-  id          String   @id @default(uuid())
-  userId      String
-  title       String
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isPublic    Boolean  @default(false)
-  tags        String[]
-  mood        String?
-  location    String?
-  weather     String?
-  attachments String[]
-  user        User     @relation(fields: [userId], references: [id])
-  views       Int      @default(0)
-  isArchived  Boolean  @default(false)
-  isDeleted   Boolean  @default(false)
-  isPinned    Boolean  @default(false)
-  isDraft     Boolean  @default(false)
-  isLocked    Boolean  @default(false)
-  metadata    Json     @default("{}")
-
-}

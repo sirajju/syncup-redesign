@@ -12,11 +12,7 @@ export const config = new Elysia()
     const config = await cache.getWithCallback(
       "config",
       () => {
-        return db.globalConfig.findFirst({
-          where: {
-            isActive: true,
-          },
-        });
+        return db.globalConfig.findFirst();
       },
       1000 * 60 * 60 * 24
     );
@@ -58,16 +54,13 @@ export const config = new Elysia()
       ) {
         const timeLeft = new Date(maintenanceStartTime).getTime() - Date.now();
         const endTime = new Date(maintenanceEndTime).getTime();
-        if (timeLeft < 0) {
-          cache.delete("config");
-          const data = await db.globalConfig.update({
-            where: { id },
-            data: {
-              isMaintenanceMode: true,
-            },
-          });
-          cache.set("config", JSON.stringify(data), 1000 * 60 * 60 * 24);
-        }
+        // if (timeLeft < 0) {
+        //   cache.delete("config");
+        //   const data = await db.globalConfig.update({
+        //     where: { id },
+        //   });
+        //   cache.set("config", JSON.stringify(data), 1000 * 60 * 60 * 24);
+        // }
         set.headers["x-maintenance-time-left"] = timeLeft.toString();
         set.headers["x-maintenance-scheduled"] = "true";
         set.headers["x-maintenance-end-time"] = endTime.toString();

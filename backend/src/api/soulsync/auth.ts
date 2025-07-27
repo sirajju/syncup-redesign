@@ -1,5 +1,5 @@
 import Elysia, { status, t } from "elysia";
-import { dbService } from "../../services/db";
+import { soulSyncDbService } from "../../services/db";
 import { cacheService } from "../../services/cache";
 import { generateOtp } from "../../utils/basic";
 import { mailService } from "../../services/mail";
@@ -13,14 +13,14 @@ export const auth = new Elysia({
   prefix: "/auth",
 })
   .use(cacheService)
-  .use(dbService)
+  .use(soulSyncDbService)
   .use(mailService)
   .use(authService)
   .post(
     "/login",
     async ({
       body,
-      db,
+      _db,
       mailer,
       request,
       server,
@@ -31,7 +31,7 @@ export const auth = new Elysia({
       set,
     }) => {
       const { email, password } = body;
-      const user = await db.user.findFirst({
+      const user = await _db.user.findFirst({
         where: {
           email,
         },
@@ -143,7 +143,7 @@ export const auth = new Elysia({
         path: path.replace("/login", "/refresh"),
       });
 
-      await db.session.create({
+      await _db.session.create({
         data: {
           userId: user.id,
           ipAddress: `${server!.requestIP(request)?.address}`,
@@ -174,9 +174,9 @@ export const auth = new Elysia({
   )
   .post(
     "/register",
-    async ({ body, db, mailer, set, auth, cookie }) => {
+    async ({ body, _db, mailer, set, auth, cookie }) => {
       const { email, password, username } = body;
-      const existingUser = await db.user.findFirst({
+      const existingUser = await _db.user.findFirst({
         where: { email },
       });
       if (existingUser) {
@@ -189,7 +189,7 @@ export const auth = new Elysia({
         };
       }
       const passwordHash = await Bun.password.hash(password);
-      const newUser = await db.user.create({
+      const newUser = await _db.user.create({
         data: {
           email,
           passwordHash,
@@ -242,7 +242,7 @@ export const auth = new Elysia({
   )
   .put(
     "/verify-otp",
-    async ({ body, cache, db, auth, cookie, server, request, set }) => {
+    async ({ body, cache, _db, auth, cookie, server, request, set }) => {
       const { t_t } = cookie;
       const { code } = body;
       const sendResponse = (status: number, message: string, code: string) => {
@@ -302,7 +302,7 @@ export const auth = new Elysia({
         );
       }
       await cache.delete(`login:otp:${id}`);
-      const user = await db.user.findUnique({ where: { id: id as string } });
+      const user = await _db.user.findUnique({ where: { id: id as string } });
       if (!user) return sendResponse(404, "User not found", "USER_NOT_FOUND");
       if (user.isBanned)
         return sendResponse(
@@ -329,7 +329,7 @@ export const auth = new Elysia({
 
       cookie.t_t.maxAge = 0;
 
-      await db.session.create({
+      await _db.session.create({
         data: {
           userId: user.id,
           ipAddress: `${server!.requestIP(request)?.address}`,
@@ -398,7 +398,7 @@ export const auth = new Elysia({
     cookie.t_t.maxAge = 0;
     return 200;
   })
-  .get("/get-session", async ({ auth, cookie, db, set }) => {
+  .get("/get-session", async ({ auth, cookie, _db, set }) => {
     const { a_t } = cookie;
 
     if (!a_t.value) {
@@ -420,7 +420,7 @@ export const auth = new Elysia({
         success: false,
       };
     }
-    const user = await db.user.findUnique({
+    const user = await _db.user.findUnique({
       where: { id: `${payload.id}` },
     });
 
@@ -464,7 +464,7 @@ export const auth = new Elysia({
       },
     };
   })
-  .delete("/logout", async ({ cookie, db, auth, server, request, set }) => {
+  .delete("/logout", async ({ cookie, _db, auth, server, request, set }) => {
     const { a_t, r_t } = cookie;
     if (!a_t.value && !r_t.value) {
       set.status = 401;
@@ -485,7 +485,7 @@ export const auth = new Elysia({
         success: false,
       };
     }
-    await db.session.updateMany({
+    await _db.session.updateMany({
       where: { userId: payload.id },
       data: { isActive: false },
     });

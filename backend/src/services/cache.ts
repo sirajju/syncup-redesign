@@ -38,7 +38,7 @@ class cacheImplementation {
   async getWithCallback(
     key: string,
     callback: () => Promise<any>,
-    ttl?: number
+    ttl: number = (1000 * 60) & 24
   ): Promise<string> {
     const cachedValue = await this.get(key);
     if (cachedValue) {

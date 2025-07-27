@@ -3,12 +3,10 @@ import logger from "./src/services/logger";
 import swagger from "@elysiajs/swagger";
 import { apiVersionOne } from "./src/api";
 import cors from "@elysiajs/cors";
-import { config } from "./src/api/config";
 
 const PORT = process.env.BACKEND_PORT || 5000;
 
 new Elysia()
-  .use(config)
   .use(
     cors({
       origin: new RegExp(process.env.CORS_ORIGIN!, "i"),

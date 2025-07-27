@@ -8,14 +8,13 @@ const soulSyncClient = new SoulSyncClient();
 
 soulSyncClient
   .$connect()
-  .then(() => {
-    logger.info("[DIARY DB] Connected successfully");
+  .then((res) => {
+    logger.info("[SOULSYNC DB] Connected successfully");
   })
   .catch((error) => {
     logger.error("Database connection failed:", error);
     process.exit(1);
   });
-
 client
   .$connect()
   .then(() => {
@@ -25,5 +24,5 @@ client
     logger.error("Database connection failed:", error);
     process.exit(1);
   });
-export const soulSyncDbService = new Elysia().decorate("db", soulSyncClient);
+export const soulSyncDbService = new Elysia().decorate("_db", soulSyncClient);
 export const dbService = new Elysia().decorate("db", client);
